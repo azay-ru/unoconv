@@ -934,16 +934,12 @@ class Convertor:
     def preserve(self, inputfn, outputfn):
         # Get timestamp of input file
         s = os.stat(inputfn)
-        times = (s.st_atime, s.st_mtime)
-        mode = s.st_mode
-        # Set it to output file
-        with open(outputfn, "a") as f:
-            os.utime(f.fileno()
-                     if hasattr(os, "supports_fd") and os.utime in os.supports_fd else inputfn,
-                     times=times)
-            os.chmod(f.fileno()
-                     if hasattr(os, "supports_fd") and os.chmod in os.supports_fd else inputfn,
-                     mode)
+        # Set it to output file, simple version
+        try:
+            os.utime(outputfn, (s.st_atime, s.st_mtime))
+            os.chmod(outputfn, s.st_mode)
+        except Exception:
+            pass
 
     def convert(self, inputfn):
         global exitcode
@@ -1337,7 +1333,6 @@ def main():
         elif op.filenames:
             if len(op.mask) > 0:
                 convertor = Convertor()
-                print('Use mask!')
                 for f in op.filenames:
                     if os.path.isfile(f):  # if single file
                         convertor.convert(f)
